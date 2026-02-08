@@ -59,7 +59,6 @@ export async function register(prevState: string | undefined, formData: FormData
                 name,
                 email,
                 password: hashedPassword,
-                // @ts-ignore: Pending Prisma Client regeneration
                 phoneNumber,
                 role: 'USER',
             },

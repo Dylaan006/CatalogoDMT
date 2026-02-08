@@ -7,12 +7,15 @@ import { useEffect, useState } from 'react';
 
 import { createOrder } from '@/lib/actions';
 import { useRouter } from 'next/navigation';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 export default function CartPage() {
     const { items, removeItem, updateQuantity, total, clearCart } = useCartStore();
     const [mounted, setMounted] = useState(false);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const router = useRouter();
+
+    const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
         setMounted(true);
@@ -33,14 +36,15 @@ export default function CartPage() {
                 clearCart();
                 router.push('/profile');
             } else {
-                alert(result.error || 'Error al procesar el pedido. Verifica que hayas iniciado sesión.');
                 if (result.error?.includes('iniciar sesión')) {
                     router.push('/login');
+                    return;
                 }
+                setError(result.error || 'Error al procesar el pedido.');
             }
         } catch (error) {
             console.error(error);
-            alert('Ocurrió un error inesperado.');
+            setError('Ocurrió un error inesperado.');
         } finally {
             setIsCheckingOut(false);
         }
@@ -156,6 +160,13 @@ export default function CartPage() {
                     </div>
                 )}
             </div>
+
+            <AlertModal
+                isOpen={!!error}
+                onClose={() => setError(null)}
+                title="Atención"
+                description={error || ''}
+            />
         </div>
     );
 }

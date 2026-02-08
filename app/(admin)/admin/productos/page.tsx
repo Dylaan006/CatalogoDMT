@@ -1,7 +1,7 @@
 import { getProducts } from '@/lib/data';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { deleteProduct } from '@/lib/actions';
+import { DeleteProductButton } from '@/components/admin/delete-product-button';
 import Image from 'next/image';
 import { StockToggle } from '@/components/admin/stock-toggle';
 
@@ -12,7 +12,7 @@ export default async function AdminDashboard() {
         <div className="py-10 px-6 lg:px-40">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Gestión de Productos</h1>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Productos</h1>
                     <p className="text-gray-500 mt-1">Administra tu catálogo de productos desde aquí.</p>
                 </div>
                 <Button asChild className="bg-gray-900 text-white hover:bg-gray-800 rounded-full px-6">
@@ -64,9 +64,7 @@ export default async function AdminDashboard() {
                                             <Button asChild variant="outline" size="sm" className="h-8 border-gray-200 hover:bg-gray-100 hover:text-gray-900 text-gray-600">
                                                 <Link href={`/admin/editar/${product.id}`}>Editar</Link>
                                             </Button>
-                                            <form action={deleteProduct.bind(null, product.id)}>
-                                                <Button variant="destructive" size="sm" type="submit" className="h-8 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-100 shadow-none">Eliminar</Button>
-                                            </form>
+                                            <DeleteProductButton productId={product.id} productName={product.name} />
                                         </div>
                                     </td>
                                 </tr>

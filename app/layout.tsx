@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
+import { Navbar } from '@/components/ui/navbar';
 
 // We will use Google Fonts via CDN or next/font/google.
 // The user requests Inter and Material Symbols. 
@@ -24,7 +25,14 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased min-h-screen bg-background-light font-sans text-gray-900">
-        {children}
+        <div className="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden font-display">
+          <div className="layout-container flex h-full grow flex-col">
+            <Navbar />
+            <main className="flex-1 w-full">
+              {children}
+            </main>
+          </div>
+        </div>
       </body>
     </html>
   );

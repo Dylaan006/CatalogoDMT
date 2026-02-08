@@ -3,6 +3,7 @@
 import { Product } from '@prisma/client';
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { AlertModal } from '@/components/ui/alert-modal';
 
 interface ProductFormProps {
     product?: Product;
@@ -31,6 +32,8 @@ export function ProductForm({ product, action }: ProductFormProps) {
 
     const [isPending, setIsPending] = useState(false);
     const router = useRouter();
+
+    const [error, setError] = useState<string | null>(null);
 
     // Image Handle
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,11 +82,11 @@ export function ProductForm({ product, action }: ProductFormProps) {
             if (result && result.success && result.redirectUrl) {
                 router.push(result.redirectUrl);
             } else if (result && !result.success) {
-                alert(result.error || 'Ocurrió un error al guardar el producto.');
+                setError(result.error || 'Ocurrió un error al guardar el producto.');
             }
         } catch (error) {
             console.error(error);
-            alert('Ocurrió un error inesperado.');
+            setError('Ocurrió un error inesperado.');
         } finally {
             setIsPending(false);
         }
@@ -291,6 +294,13 @@ export function ProductForm({ product, action }: ProductFormProps) {
                     </button>
                 </div>
             </form>
+
+            <AlertModal
+                isOpen={!!error}
+                onClose={() => setError(null)}
+                title="Error"
+                description={error || ''}
+            />
         </div>
     );
 }

@@ -13,11 +13,11 @@ export async function createOrder(cartItems: { productId: string; quantity: numb
     const session = await auth();
 
     if (!session || !session.user || !session.user.id) {
-        throw new Error('Debes iniciar sesión para realizar un pedido.');
+        return { success: false, error: 'Debes iniciar sesión para realizar un pedido.' };
     }
 
     if (!cartItems || cartItems.length === 0) {
-        throw new Error('El carrito está vacío.');
+        return { success: false, error: 'El carrito está vacío.' };
     }
 
     try {
@@ -148,8 +148,8 @@ export async function createProduct(formData: FormData) {
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/dashboard');
-    return { success: true, redirectUrl: '/admin/dashboard' };
+    revalidatePath('/admin/productos');
+    return { success: true, redirectUrl: '/admin/productos' };
 }
 
 export async function updateProduct(id: string, formData: FormData) {
@@ -200,11 +200,11 @@ export async function updateProduct(id: string, formData: FormData) {
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/productos');
     revalidatePath(`/admin/editar/${id}`);
     revalidatePath(`/producto/${id}`);
 
-    return { success: true, redirectUrl: '/admin/dashboard' };
+    return { success: true, redirectUrl: '/admin/productos' };
 }
 
 // ... existing actions
@@ -219,7 +219,7 @@ export async function deleteProduct(id: string) {
     });
 
     revalidatePath('/');
-    revalidatePath('/admin/dashboard');
+    revalidatePath('/admin/productos');
 }
 
 export async function updateOrderStatus(orderId: string, newStatus: string) {
@@ -258,7 +258,7 @@ export async function toggleProductStock(id: string, inStock: boolean) {
             data: { inStock },
         });
 
-        revalidatePath('/admin/dashboard');
+        revalidatePath('/admin/productos');
         revalidatePath(`/producto/${id}`);
         return { success: true };
     } catch (error) {

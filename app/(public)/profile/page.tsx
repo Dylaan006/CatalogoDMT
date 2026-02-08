@@ -35,14 +35,14 @@ export default async function ProfilePage() {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md">
                             <div className="size-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-900">
-                                <span className="material-symbols-outlined text-3xl">dashboard</span>
+                                <span className="material-symbols-outlined text-3xl">inventory_2</span>
                             </div>
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900">Panel de Control</h2>
-                                <p className="text-gray-500 text-sm mt-1">Accede al dashboard completo para gestionar productos.</p>
+                                <h2 className="text-xl font-bold text-gray-900">Productos</h2>
+                                <p className="text-gray-500 text-sm mt-1">Gestiona los productos del catálogo.</p>
                             </div>
                             <Button asChild className="w-full mt-2 bg-gray-900 text-white font-bold h-12 rounded-xl hover:bg-gray-800">
-                                <Link href="/admin/dashboard">Ir al Dashboard</Link>
+                                <Link href="/admin/productos">Ir a Productos</Link>
                             </Button>
                         </div>
 
@@ -75,7 +75,6 @@ export default async function ProfilePage() {
                     <div>
                         <h1 className="text-3xl font-black text-gray-900">Hola, {session.user.name}</h1>
                         <p className="text-gray-500">{userProfile?.email}</p>
-                        {/* @ts-ignore: Pending Prisma Client regeneration */}
                         {userProfile?.phoneNumber && (
                             <p className="text-gray-500 flex items-center gap-1 mt-1">
                                 <span className="material-symbols-outlined text-sm">call</span>
@@ -119,11 +118,14 @@ export default async function ProfilePage() {
                                             <span className="text-sm text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</span>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-bold ${order.status === 'PENDING' ? 'bg-yellow-100 text-yellow-800' :
-                                                order.status === 'COMPLETED' ? 'bg-green-100 text-green-800' :
-                                                    'bg-gray-100 text-gray-800'
+                                            <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${order.status === 'PENDING' ? 'bg-yellow-50 text-yellow-700 border-yellow-200' :
+                                                order.status === 'COMPLETED' ? 'bg-green-50 text-green-700 border-green-200' :
+                                                    order.status === 'CANCELLED' ? 'bg-red-50 text-red-700 border-red-200' :
+                                                        'bg-gray-50 text-gray-700 border-gray-200'
                                                 }`}>
-                                                {order.status === 'PENDING' ? 'Pendiente' : order.status}
+                                                {order.status === 'PENDING' ? 'Pendiente' :
+                                                    order.status === 'COMPLETED' ? 'Completado' :
+                                                        order.status === 'CANCELLED' ? 'Cancelado' : order.status}
                                             </span>
                                             <span className="text-xl font-black text-gray-900">${order.total.toLocaleString('es-AR')}</span>
                                         </div>
