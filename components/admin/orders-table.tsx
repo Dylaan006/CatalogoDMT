@@ -58,10 +58,10 @@ export function OrdersTable({ orders }: OrdersTableProps) {
                                 </td>
                                 <td className="px-6 py-4">
                                     <div className="text-sm text-gray-600">
-                                        {order.items.map((item: any) => (
+                                        {order.items?.map((item: any) => (
                                             <div key={item.id} className="flex gap-2">
                                                 <span className="font-bold">{item.quantity}x</span>
-                                                <span className="truncate max-w-[150px]">{item.product.name}</span>
+                                                <span className="truncate max-w-[150px]">{item.productName || item.product?.name || 'Producto Eliminado'}</span>
                                             </div>
                                         ))}
                                     </div>

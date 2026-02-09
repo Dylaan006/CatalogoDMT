@@ -9,6 +9,7 @@ export async function getProducts(query?: string, category?: string, sort?: stri
             { name: { contains: query } },
             { description: { contains: query } },
             { category: { contains: query } },
+            { productCode: { contains: query } },
         ];
     }
 

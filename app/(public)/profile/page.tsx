@@ -33,11 +33,11 @@ export default async function ProfilePage() {
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md">
+                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md h-full">
                             <div className="size-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-900">
                                 <span className="material-symbols-outlined text-3xl">inventory_2</span>
                             </div>
-                            <div>
+                            <div className="flex-1 flex flex-col justify-center">
                                 <h2 className="text-xl font-bold text-gray-900">Productos</h2>
                                 <p className="text-gray-500 text-sm mt-1">Gestiona los productos del catálogo.</p>
                             </div>
@@ -46,11 +46,11 @@ export default async function ProfilePage() {
                             </Button>
                         </div>
 
-                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md">
+                        <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 flex flex-col items-center text-center gap-4 transition-all hover:shadow-md h-full">
                             <div className="size-16 bg-gray-100 rounded-full flex items-center justify-center text-gray-900">
                                 <span className="material-symbols-outlined text-3xl">receipt_long</span>
                             </div>
-                            <div>
+                            <div className="flex-1 flex flex-col justify-center">
                                 <h2 className="text-xl font-bold text-gray-900">Gestión de Ordenes</h2>
                                 <p className="text-gray-500 text-sm mt-1">Revisa y actualiza el estado de las compras de los usuarios.</p>
                             </div>
@@ -136,7 +136,7 @@ export default async function ProfilePage() {
                                             <div key={item.id} className="flex justify-between items-center text-sm">
                                                 <div className="flex items-center gap-2">
                                                     <span className="font-bold text-gray-900">{item.quantity}x</span>
-                                                    <span className="text-gray-700">{item.product.name}</span>
+                                                    <span className="text-gray-700">{item.productName || item.product?.name || 'Producto Eliminado'}</span>
                                                 </div>
                                                 <span className="text-gray-600">${item.price.toLocaleString('es-AR')}</span>
                                             </div>

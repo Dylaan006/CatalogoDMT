@@ -14,6 +14,7 @@ export function ProductForm({ product, action }: ProductFormProps) {
     // Images
     const [existingImages, setExistingImages] = useState<string[]>(product && product.images ? JSON.parse(product.images) : []);
     const [previewImages, setPreviewImages] = useState<string[]>([]);
+    const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
     // Box Content
     // @ts-ignore: Pending Prisma Client regeneration for boxContent type
@@ -36,15 +37,44 @@ export function ProductForm({ product, action }: ProductFormProps) {
     const [error, setError] = useState<string | null>(null);
 
     // Image Handle
+    // Image Handle
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = e.target.files;
         if (files) {
-            const newPreviews: string[] = [];
-            Array.from(files).forEach(file => {
-                newPreviews.push(URL.createObjectURL(file));
-            });
-            setPreviewImages(newPreviews);
+            const newFiles = Array.from(files);
+
+            // Calculate total size of ALREADY selected files + NEW files
+            const currentTotalSize = selectedFiles.reduce((acc, file) => acc + file.size, 0);
+            const newTotalSize = newFiles.reduce((acc, file) => acc + file.size, 0);
+            const totalSize = currentTotalSize + newTotalSize;
+
+            // 5MB limit
+            const MAX_TOTAL_SIZE = 5 * 1024 * 1024;
+
+            if (totalSize > MAX_TOTAL_SIZE) {
+                const totalMB = (totalSize / (1024 * 1024)).toFixed(2);
+                setError(`El peso total de las imágenes (${totalMB} MB) supera el límite de 5 MB permitido por producto. El servidor rechazaría la subida. Por favor reduce el número de fotos o comprímelas.`);
+                e.target.value = '';
+                return;
+            }
+
+            setError(null);
+            setSelectedFiles(prev => [...prev, ...newFiles]);
+
+            const newPreviews = newFiles.map(file => URL.createObjectURL(file));
+            setPreviewImages(prev => [...prev, ...newPreviews]);
         }
+        // Reset input to allow selecting same files again if needed
+        e.target.value = '';
+    };
+
+    const removeNewImage = (index: number) => {
+        setPreviewImages(prev => prev.filter((_, i) => i !== index));
+        setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    };
+
+    const removeExistingImage = (index: number) => {
+        setExistingImages(prev => prev.filter((_, i) => i !== index));
     };
 
     // Box Content Handle
@@ -77,6 +107,12 @@ export function ProductForm({ product, action }: ProductFormProps) {
         setIsPending(true);
         const formData = new FormData(event.currentTarget);
 
+        // Manually append selected files
+        formData.delete('images');
+        selectedFiles.forEach(file => {
+            formData.append('images', file);
+        });
+
         try {
             const result = await action(formData);
             if (result && result.success && result.redirectUrl) {
@@ -103,6 +139,7 @@ export function ProductForm({ product, action }: ProductFormProps) {
                 <div className="p-6 md:p-8 space-y-8">
 
                     {/* Hidden Inputs for JSON Data */}
+                    <input type="hidden" name="keptImages" value={JSON.stringify(existingImages)} />
                     <input type="hidden" name="boxContent" value={JSON.stringify(boxItems)} />
                     <input type="hidden" name="specifications" value={JSON.stringify(
                         specs.reduce((acc, curr) => ({ ...acc, [curr.key]: curr.value }), {})
@@ -117,14 +154,32 @@ export function ProductForm({ product, action }: ProductFormProps) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <label className="flex flex-col gap-2">
                                 <span className="text-sm font-semibold text-gray-700">Nombre del Producto *</span>
-                                <input name="name" defaultValue={product?.name} required placeholder="ej. Stitch Peluche" type="text" className="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 h-12 px-4 text-gray-900 placeholder:text-gray-400" />
+                                <input name="name" defaultValue={product?.name} required placeholder="ej. Peluche" type="text" className="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 h-12 px-4 text-gray-900 placeholder:text-gray-400" />
                             </label>
+                            <label className="flex flex-col gap-2 relative">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-semibold text-gray-700">Código de Producto</span>
+                                    <div className="group relative flex items-center">
+                                        <span className="material-symbols-outlined text-gray-400 text-sm cursor-help">info</span>
+                                        <div className="absolute right-0 mt-8 w-64 p-3 bg-gray-900 text-white text-xs rounded-lg opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity z-10 shadow-lg top-full md:left-full md:top-auto md:mt-0 md:ml-2">
+                                            Este código sirve para identificar el producto en la barra de búsqueda del panel de productos. Visible solo para administradores.
+                                        </div>
+                                    </div>
+                                </div>
+                                <input
+                                    name="productCode"
+                                    // @ts-ignore
+                                    defaultValue={product?.productCode || ''}
+                                    placeholder="ej. COD-123 o Barra"
+                                    className="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 h-12 px-4 text-gray-900 placeholder:text-gray-400"
+                                />
+                            </label>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <label className="flex flex-col gap-2">
                                 <span className="text-sm font-semibold text-gray-700">Categoría *</span>
                                 <input name="category" defaultValue={product?.category} required placeholder="ej. Peluches" className="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 h-12 px-4 text-gray-900 placeholder:text-gray-400" />
                             </label>
-                        </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <label className="flex flex-col gap-2">
                                 <span className="text-sm font-semibold text-gray-700">Precio (ARS) *</span>
                                 <div className="relative">
@@ -132,19 +187,19 @@ export function ProductForm({ product, action }: ProductFormProps) {
                                     <input name="price" type="number" defaultValue={product?.price} required min="0" step="0.01" placeholder="0.00" className="w-full rounded-lg border-gray-300 focus:border-gray-900 focus:ring-gray-900 h-12 pl-8 pr-4 text-gray-900 placeholder:text-gray-400" />
                                 </div>
                             </label>
+                        </div>
 
-                            <div className="flex flex-col gap-2">
-                                <span className="text-sm font-semibold text-gray-700">Estado</span>
-                                <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-12">
-                                    <input
-                                        type="checkbox"
-                                        name="inStock"
-                                        defaultChecked={product ? product.inStock : true}
-                                        className="w-5 h-5 text-gray-900 focus:ring-gray-900 border-gray-300 rounded"
-                                    />
-                                    <span className="text-gray-900 font-medium">En Stock (Disponible para venta)</span>
-                                </label>
-                            </div>
+                        <div className="flex flex-col gap-2">
+                            <span className="text-sm font-semibold text-gray-700">Estado</span>
+                            <label className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors h-12">
+                                <input
+                                    type="checkbox"
+                                    name="inStock"
+                                    defaultChecked={product ? product.inStock : true}
+                                    className="w-5 h-5 text-gray-900 focus:ring-gray-900 border-gray-300 rounded"
+                                />
+                                <span className="text-gray-900 font-medium">En Stock (Disponible para venta)</span>
+                            </label>
                         </div>
                     </section>
 
@@ -265,7 +320,14 @@ export function ProductForm({ product, action }: ProductFormProps) {
                                 {/* Existing */}
                                 {existingImages.map((img, idx) => (
                                     <div key={`existing-${idx}`} className="aspect-square rounded-lg bg-gray-100 border border-gray-200 overflow-hidden relative group">
-                                        <div className="absolute top-1 right-1 bg-white/80 rounded-full p-1 text-xs font-bold text-gray-600 z-10">Anterior</div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeExistingImage(idx)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 z-20 hover:bg-red-600 shadow-sm"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px] block">close</span>
+                                        </button>
+                                        <div className="absolute top-1 left-1 bg-gray-900/50 backdrop-blur-[2px] rounded px-1.5 py-0.5 text-[10px] font-bold text-white z-10">Guardada</div>
                                         <div className="w-full h-full bg-center bg-no-repeat bg-cover" style={{ backgroundImage: `url("${img}")` }}></div>
                                     </div>
                                 ))}
@@ -273,9 +335,14 @@ export function ProductForm({ product, action }: ProductFormProps) {
                                 {/* New Previews */}
                                 {previewImages.map((img, idx) => (
                                     <div key={`new-${idx}`} className="aspect-square rounded-lg bg-gray-100 border-2 border-green-500 overflow-hidden relative group">
-                                        <div className="absolute top-1 right-1 bg-green-500 text-white rounded-full p-0.5 z-10">
-                                            <span className="material-symbols-outlined text-sm block">check</span>
-                                        </div>
+                                        <button
+                                            type="button"
+                                            onClick={() => removeNewImage(idx)}
+                                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 z-20 hover:bg-red-600 shadow-sm"
+                                        >
+                                            <span className="material-symbols-outlined text-[16px] block">close</span>
+                                        </button>
+                                        <div className="absolute top-1 left-1 bg-green-500 text-white rounded px-1.5 py-0.5 text-[10px] font-bold z-10">Nueva</div>
                                         <img src={img} alt="Preview" className="w-full h-full object-cover" />
                                     </div>
                                 ))}

@@ -37,6 +37,7 @@ export async function createOrder(cartItems: { productId: string; quantity: numb
                     productId: product.id,
                     quantity: item.quantity,
                     price: product.price,
+                    productName: product.name,
                 });
             }
         }
@@ -72,10 +73,12 @@ const ProductSchema = z.object({
     boxContent: z.string().optional(),
     specifications: z.string().optional(),
     inStock: z.boolean().optional(),
+    productCode: z.string().optional(),
 });
 
 import fs from 'node:fs/promises';
 import path from 'node:path';
+import sharp from 'sharp';
 
 // ... (existing imports)
 
@@ -94,9 +97,23 @@ async function saveImages(formData: FormData): Promise<string[]> {
     for (const file of files) {
         if (file.size > 0 && file.name !== 'undefined') {
             const buffer = Buffer.from(await file.arrayBuffer());
-            const filename = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+
+            // Optimize with Sharp
+            const processedBuffer = await sharp(buffer)
+                .resize(1200, 1200, {
+                    fit: 'inside',
+                    withoutEnlargement: true
+                })
+                .webp({ quality: 80 })
+                .toBuffer();
+
+            // Use .webp extension
+            const nameWithoutExt = file.name.substring(0, file.name.lastIndexOf('.')) || file.name;
+            const cleanName = nameWithoutExt.replace(/[^a-zA-Z0-9.-]/g, '');
+            const filename = `${Date.now()}-${cleanName}.webp`;
+
             const filepath = path.join(uploadDir, filename);
-            await fs.writeFile(filepath, buffer);
+            await fs.writeFile(filepath, processedBuffer);
             savedPaths.push(`/uploads/${filename}`);
         }
     }
@@ -116,14 +133,15 @@ export async function createProduct(formData: FormData) {
         category: formData.get('category'),
         boxContent: formData.get('boxContent'),
         specifications: formData.get('specifications'),
-        inStock: inStock
+        inStock: inStock,
+        productCode: formData.get('productCode'),
     });
 
     if (!validatedFields.success) {
         return { success: false, error: 'Campos inválidos' };
     }
 
-    const { name, description, price, category, boxContent, specifications } = validatedFields.data;
+    const { name, description, price, category, boxContent, specifications, productCode } = validatedFields.data;
 
     // Handle images
     let imageUrls = await saveImages(formData);
@@ -143,7 +161,8 @@ export async function createProduct(formData: FormData) {
             images,
             boxContent: boxContent || '[]',
             specifications: specifications || '{}',
-            inStock: inStock
+            inStock: inStock,
+            productCode: productCode || null,
         },
     });
 
@@ -165,20 +184,25 @@ export async function updateProduct(id: string, formData: FormData) {
         boxContent: formData.get('boxContent'),
         specifications: formData.get('specifications'),
         inStock: inStock,
+        productCode: formData.get('productCode'),
     });
 
     if (!validatedFields.success) {
         return { success: false, error: 'Campos inválidos' };
     }
 
-    const { name, description, price, category, boxContent, specifications } = validatedFields.data;
+    const { name, description, price, category, boxContent, specifications, productCode } = validatedFields.data;
+
+    const keptImagesRaw = formData.get('keptImages');
+    let keptImages: string[] = [];
+    if (keptImagesRaw && typeof keptImagesRaw === 'string') {
+        try {
+            keptImages = JSON.parse(keptImagesRaw);
+        } catch (e) { }
+    }
 
     const newImages = await saveImages(formData);
-    let imagesJSON;
-
-    if (newImages.length > 0) {
-        imagesJSON = JSON.stringify(newImages);
-    }
+    const finalImages = [...keptImages, ...newImages];
 
     const data: any = {
         name,
@@ -188,11 +212,9 @@ export async function updateProduct(id: string, formData: FormData) {
         boxContent: boxContent || '[]',
         specifications: specifications || '{}',
         inStock: inStock,
+        productCode: productCode || null,
+        images: JSON.stringify(finalImages.length > 0 ? finalImages : ['https://placehold.co/600x400/png?text=' + encodeURIComponent(name)]),
     };
-
-    if (imagesJSON) {
-        data.images = imagesJSON;
-    }
 
     await prisma.product.update({
         where: { id },
@@ -213,6 +235,33 @@ export async function deleteProduct(id: string) {
     const session = await auth();
     // @ts-ignore
     if (session?.user?.role !== 'ADMIN') return;
+
+    // Get product images before deleting
+    const product = await prisma.product.findUnique({
+        where: { id },
+        select: { images: true },
+    });
+
+    if (product?.images) {
+        try {
+            const images = JSON.parse(product.images);
+            if (Array.isArray(images)) {
+                const publicDir = path.join(process.cwd(), 'public');
+                for (const imageUrl of images) {
+                    if (typeof imageUrl === 'string' && imageUrl.startsWith('/uploads/')) {
+                        const filePath = path.join(publicDir, imageUrl);
+                        try {
+                            await fs.unlink(filePath);
+                        } catch (e) {
+                            // Ignore if file doesn't exist
+                        }
+                    }
+                }
+            }
+        } catch (e) {
+            console.error('Error cleaning up images:', e);
+        }
+    }
 
     await prisma.product.delete({
         where: { id },
