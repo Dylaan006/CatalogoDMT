@@ -5,17 +5,28 @@ const prisma = new PrismaClient()
 
 async function main() {
     // Create Default Admin
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const email = 'carinaedith.villalba@gmail.com'
+    const password = 'DYMOTHOM'
+    const phoneNumber = '+5491136511528' // Ajusta este número si es necesario
+    const hashedPassword = await bcrypt.hash(password, 10);
+
     await prisma.user.upsert({
-        where: { email: 'admin@stitch.com' },
-        update: {},
-        create: {
-            email: 'admin@stitch.com',
-            name: 'Admin User',
+        where: { email },
+        update: {
             password: hashedPassword,
             role: 'ADMIN',
+            phoneNumber: phoneNumber
+        },
+        create: {
+            email,
+            name: 'Admin DMT',
+            password: hashedPassword,
+            role: 'ADMIN',
+            phoneNumber: phoneNumber
         },
     });
+
+    console.log(`Admin user seeded: ${email}`);
 
     const products = [
         {

@@ -94,3 +94,17 @@ export async function getUserProfile(userId: string) {
         throw new Error('Failed to fetch user profile.');
     }
 }
+
+export async function getAdminUser() {
+    try {
+        const admin = await prisma.user.findFirst({
+            where: { role: 'ADMIN' },
+            orderBy: { createdAt: 'asc' } // Get the first admin created
+        });
+        return admin;
+    } catch (error) {
+        console.error('Database Error:', error);
+        return null;
+    }
+}
+

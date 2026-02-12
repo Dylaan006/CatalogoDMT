@@ -1,12 +1,15 @@
 import { AddToCartButton } from '@/components/cart/add-to-cart-button';
 import { ProductGallery } from '@/components/product/product-gallery';
-import { getProductById } from '@/lib/data';
+import { getProductById, getAdminUser } from '@/lib/data';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 
 export default async function ProductPage(props: { params: Promise<{ id: string }> }) {
     const params = await props.params;
-    const product = await getProductById(params.id);
+    const [product, admin] = await Promise.all([
+        getProductById(params.id),
+        getAdminUser()
+    ]);
 
     if (!product) {
         notFound();
@@ -17,7 +20,8 @@ export default async function ProductPage(props: { params: Promise<{ id: string 
         currency: 'ARS',
     }).format(product.price);
 
-    const whatsappLink = `https://wa.me/5491112345678?text=Hola,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20${encodeURIComponent(product.name)}`;
+    const whatsAppNumber = admin?.phoneNumber?.replace(/\D/g, '') || '5491112345678';
+    const whatsappLink = `https://wa.me/${whatsAppNumber}?text=Hola,%20quisiera%20m%C3%A1s%20informaci%C3%B3n%20sobre%20${encodeURIComponent(product.name)}`;
 
     return (
         <div className="flex flex-1 justify-center py-8 bg-gray-50 min-h-screen">
