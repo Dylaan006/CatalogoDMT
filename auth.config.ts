@@ -26,15 +26,13 @@ export const authConfig = {
                 session.user.id = token.sub;
             }
             if (token.role && session.user) {
-                // @ts-ignore
-                session.user.role = token.role;
+                session.user.role = token.role as string;
             }
             return session;
         },
         jwt({ token, user }) {
             if (user) {
-                // @ts-ignore
-                token.role = user.role;
+                token.role = (user as any).role;
             }
             return token;
         }

@@ -6,7 +6,6 @@ import { MobileMenu } from '@/components/ui/mobile-menu';
 export async function Navbar() {
     const session = await auth();
     const isLoggedIn = !!session?.user;
-    // @ts-ignore
     const isAdmin = session?.user?.role === 'ADMIN';
 
     return (
