@@ -29,16 +29,16 @@ export default async function AdminDashboard(props: { searchParams: Promise<{ qu
                 </div>
             </div>
 
-            <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm overflow-x-auto">
-                <table className="min-w-[800px] w-full">
+            <div className="bg-white rounded-2xl overflow-hidden border border-gray-200 shadow-sm overflow-x-auto md:overflow-x-visible">
+                <table className="w-full">
                     <thead>
                         <tr className="border-b border-gray-100">
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Producto</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Categoría</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Stock</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Precio</th>
-                            <th className="px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Código</th>
-                            <th className="px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Acciones</th>
+                            <th className="px-4 md:px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Producto</th>
+                            <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Categoría</th>
+                            <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Stock</th>
+                            <th className="hidden md:table-cell px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Precio</th>
+                            <th className="px-4 md:px-6 py-4 text-left text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Código</th>
+                            <th className="px-4 md:px-6 py-4 text-right text-xs font-bold text-gray-500 uppercase tracking-wider bg-gray-50/50">Acciones</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -47,33 +47,36 @@ export default async function AdminDashboard(props: { searchParams: Promise<{ qu
                             const mainImage = images[0] || '/placeholder.png';
                             return (
                                 <tr key={product.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative h-12 w-12 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                                    <td className="px-4 md:px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center gap-3 md:gap-4">
+                                            <div className="relative h-10 w-10 md:h-12 md:w-12 rounded-lg overflow-hidden border border-gray-200 bg-gray-100 shrink-0">
                                                 <Image src={mainImage} alt={product.name} fill className="object-cover" />
                                             </div>
-                                            <div className="text-sm font-semibold text-gray-900">{product.name}</div>
+                                            <div className="text-sm font-semibold text-gray-900 truncate max-w-[120px] md:max-w-none">{product.name}</div>
                                         </div>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800 border border-gray-200">
                                             {product.category}
                                         </span>
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
+                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap">
                                         <StockToggle productId={product.id} initialInStock={product.inStock} />
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                                    <td className="hidden md:table-cell px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                                         ${product.price}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
+                                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-500">
                                         {/* @ts-ignore */}
                                         {product.productCode || '-'}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                    <td className="px-4 md:px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                         <div className="flex justify-end gap-2">
-                                            <Button asChild variant="outline" size="sm" className="h-8 border-gray-200 hover:bg-gray-100 hover:text-gray-900 text-gray-600">
-                                                <Link href={`/admin/editar/${product.id}`}>Editar</Link>
+                                            <Button asChild variant="outline" size="sm" className="h-8 w-8 p-0 md:w-auto md:px-3 border-gray-200 hover:bg-gray-100 hover:text-gray-900 text-gray-600">
+                                                <Link href={`/admin/editar/${product.id}`}>
+                                                    <span className="md:hidden material-symbols-outlined text-sm">edit</span>
+                                                    <span className="hidden md:inline">Editar</span>
+                                                </Link>
                                             </Button>
                                             <DeleteProductButton productId={product.id} productName={product.name} />
                                         </div>

@@ -27,9 +27,10 @@ export function DeleteProductButton({ productId, productName }: DeleteProductBut
                 variant="destructive"
                 size="sm"
                 onClick={() => setIsConfirmOpen(true)}
-                className="h-8 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-100 shadow-none"
+                className="h-8 w-8 p-0 md:w-auto md:px-3 bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 border border-red-100 shadow-none"
             >
-                Eliminar
+                <span className="md:hidden material-symbols-outlined text-sm">delete</span>
+                <span className="hidden md:inline">Eliminar</span>
             </Button>
 
             <ConfirmModal
